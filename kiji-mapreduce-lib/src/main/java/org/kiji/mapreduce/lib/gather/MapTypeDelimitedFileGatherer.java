@@ -1,4 +1,21 @@
-// (c) Copyright 2011 WibiData, Inc.
+/**
+ * (c) Copyright 2013 WibiData, Inc.
+ *
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.kiji.mapreduce.lib.gather;
 
@@ -6,26 +23,24 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.NavigableMap;
 
-import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+
 import org.kiji.hadoop.configurator.HadoopConf;
 import org.kiji.hadoop.configurator.HadoopConfigurator;
+import org.kiji.mapreduce.KijiGatherer;
+import org.kiji.mapreduce.MapReduceContext;
 import org.kiji.schema.EntityId;
 import org.kiji.schema.KijiColumnName;
 import org.kiji.schema.KijiDataRequest;
 import org.kiji.schema.KijiRowData;
 
-import org.kiji.mapreduce.KijiGatherer;
-import com.wibidata.core.license.Feature;
-import com.wibidata.core.license.LicensedBy;
-
 /**
- * Gatherer to flatten map-type wibi data into delimited files in hdfs.
- * <p>This implementation writes one file for each mapper created.
+ * Gatherer to flatten map-type kiji data into delimited files in hdfs.
+ * <p>This implementation writes one file for each map created.
  * Each line contains one key-value pair from a map-type family.
  * By default, data is output in the format:</p>
  * <br/>
@@ -36,28 +51,27 @@ import com.wibidata.core.license.LicensedBy;
  *
  * <p>Values are output as json representations of the underlying data.
  * By default, the delimiter between timestamp and data (and subsequent data) is a pipe ("|").
- * You can set this value by setting the wibi.export.field.delimiter configuration variable.
+ * You can set this value by setting the kiji.export.field.delimiter configuration variable.
  * You must guarantee that the delimiter you choose does not appear in the json
  * representation of your data.</p>
  */
-@LicensedBy(Feature.WIBI_CORE)
 public class MapTypeDelimitedFileGatherer extends KijiGatherer<Text, NullWritable> {
   /**
    * Delimiter used to separate entityid, timestamp, key, and value data when writing to hdfs.
    * In order for hive to parse the generated file correctly, this character can NOT
-   * match any character in the json representation of wibi data.
+   * match any character in the json representation of kiji data.
    * Choose an appropriate delimiter.
    */
-  private static final String CONF_FIELD_DELIMITER = "wibi.export.field.delimiter";
+  private static final String CONF_FIELD_DELIMITER = "kiji.export.field.delimiter";
 
   /** Default delimiter to use for writing column values into hdfs. */
   private static final String DEFAULT_FIELD_DELIMITER = "|";
 
   /** The Map-type family to export. */
-  private static final String CONF_EXPORT_FAMILY = "wibi.export.map.family";
+  private static final String CONF_EXPORT_FAMILY = "kiji.export.map.family";
 
   /** The maximum number of versions to return for any key. */
-  private static final String CONF_MAX_VERSIONS = "wibi.export.max.versions";
+  private static final String CONF_MAX_VERSIONS = "kiji.export.max.versions";
 
   /** Delimiter to write between field data. */
   private String mFieldDelimiter;
@@ -92,7 +106,7 @@ public class MapTypeDelimitedFileGatherer extends KijiGatherer<Text, NullWritabl
   }
 
   @Override
-  protected void setup(Context context) throws IOException, InterruptedException {
+  public void setup(MapReduceContext context) throws IOException {
     super.setup(context);
     mLine = new Text();
   }
@@ -128,19 +142,18 @@ public class MapTypeDelimitedFileGatherer extends KijiGatherer<Text, NullWritabl
 
   /**
    * Outputs flattened data without schema definitions.
-   * A single line of data contains one key-value record from a wibi family, formatted as:
+   * A single line of data contains one key-value record from a kiji family, formatted as:
    * [entityid]|[timestamp]|[key]|[value]
    *
    * @param input The row data to export.
    * @param context The context to write export to.
    * @throws IOException if there's an error.
-   * @throws InterruptedException if there's an error.
    */
   @Override
-  protected void gather(KijiRowData input, Context context)
-      throws IOException, InterruptedException {
+  public void gather(KijiRowData input, MapReduceContext context)
+      throws IOException {
     for (String key : input.getQualifiers(mFamily)) {
-    NavigableMap<Long, Object> values = input.getValues(mFamily, key, (Schema) null);
+    NavigableMap<Long, Object> values = input.getMostRecentValue(mFamily, key);
       for (Map.Entry<Long, Object> e : values.entrySet()) {
         // Write this entry out on a single line.
         mLine.set(makeLine(input.getEntityId(), e.getKey(), key, e.getValue()));

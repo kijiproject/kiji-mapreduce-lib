@@ -17,7 +17,24 @@
  * limitations under the License.
  */
 
+package org.kiji.mapreduce.lib.produce;
+
+import java.util.Collection;
+
+import org.kiji.schema.KijiDataRequest;
+
 /**
- * Kiji MapReduce reducers.
+ * Base class for producers that read all versions from a single input column.
  */
-package org.kiji.mapreduce.lib.reduce;
+public abstract class AllVersionsSingleInputProducer extends SingleInputProducer {
+  @Override
+  public KijiDataRequest getDataRequest() {
+    KijiDataRequest request = super.getDataRequest();
+    Collection<KijiDataRequest.Column> columns = request.getColumns();
+    if (columns.size() != 1) {
+      throw new RuntimeException("Should be exactly one input column");
+    }
+    columns.iterator().next().withMaxVersions(Integer.MAX_VALUE);
+    return request;
+  }
+}

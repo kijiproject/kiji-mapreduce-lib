@@ -1,4 +1,21 @@
-// (c) Copyright 2011 WibiData, Inc.
+/**
+ * (c) Copyright 2013 WibiData, Inc.
+ *
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.kiji.mapreduce.lib.produce;
 
@@ -8,17 +25,16 @@ import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
+
 import org.kiji.hadoop.configurator.HadoopConf;
 import org.kiji.hadoop.configurator.HadoopConfigurator;
+import org.kiji.mapreduce.KijiProducer;
+import org.kiji.mapreduce.ProducerContext;
 import org.kiji.schema.KijiCell;
 import org.kiji.schema.KijiColumnName;
 import org.kiji.schema.KijiDataRequest;
 import org.kiji.schema.KijiRowData;
 import org.kiji.schema.NoSuchColumnException;
-
-import org.kiji.mapreduce.KijiProducer;
-import com.wibidata.core.license.Feature;
-import com.wibidata.core.license.LicensedBy;
 
 /**
  * This producer copies data from one family or column to another without modification.
@@ -32,7 +48,6 @@ import com.wibidata.core.license.LicensedBy;
  * <i>identity.producer.input</i>.  The output column name is set with the configuration
  * variable <i>identity.producer.output</i>.</p>
  */
-@LicensedBy(Feature.WIBI_CORE)
 public class IdentityProducer extends KijiProducer {
   public static final String CONF_INPUT = "identity.producer.input";
   public static final String CONF_OUTPUT = "identity.producer.output";
@@ -97,8 +112,8 @@ public class IdentityProducer extends KijiProducer {
 
   /** {@inheritDoc} */
   @Override
-  public void produce(KijiRowData input, Context context)
-      throws IOException, InterruptedException {
+  public void produce(KijiRowData input, ProducerContext context)
+      throws IOException {
     if (null == mSchemaCache) {
       mSchemaCache = new SchemaCache(input, mInputColumn.getFamily());
     }
@@ -122,22 +137,21 @@ public class IdentityProducer extends KijiProducer {
    * @param context The producer context used to write.
    * @param columnName The column to read from.
    * @throws IOException If there is an IO error.
-   * @throws InterruptedException If the thread is interrupted.
    */
   private void produceAllVersions(
-      KijiRowData input, Context context, KijiColumnName columnName)
-      throws IOException, InterruptedException {
+      KijiRowData input, ProducerContext context, KijiColumnName columnName)
+      throws IOException {
     Schema schema = mSchemaCache.get(input, columnName);
     for (long timestamp : input.getTimestamps(columnName.getFamily(), columnName.getQualifier())) {
       // Read the data from the input column.
       Object data = input.getValue(
-          mInputColumn.getFamily(), columnName.getQualifier(), timestamp, schema);
+          mInputColumn.getFamily(), columnName.getQualifier(), timestamp);
 
       // Write the data to the output column.
       if (!mOutputColumn.isFullyQualified()) {
-        context.write(columnName.getQualifier(), timestamp, new KijiCell<Object>(schema, data));
+        context.put(columnName.getQualifier(), timestamp, new KijiCell<Object>(schema, data));
       } else {
-        context.write(timestamp, new KijiCell<Object>(schema, data));
+        context.put(timestamp, new KijiCell<Object>(schema, data));
       }
     }
   }
@@ -155,7 +169,7 @@ public class IdentityProducer extends KijiProducer {
     /**
      * Creates a new <code>SchemaCache</code> instance.
      *
-     * @param rowData A wibi row data.
+     * @param rowData A kiji row data.
      * @param inputFamily The family to read from schemas from.
      * @throws IOException If there is an error.
      */
@@ -178,7 +192,7 @@ public class IdentityProducer extends KijiProducer {
     /**
      * Gets the reader schema for a column.
      *
-     * @param input The wibi row data.
+     * @param input The kiji row data.
      * @param columnName The name of a column.
      * @return The reader schema for that column, according to the table layout.
      * @throws IOException If the schema cannot be retrieved.

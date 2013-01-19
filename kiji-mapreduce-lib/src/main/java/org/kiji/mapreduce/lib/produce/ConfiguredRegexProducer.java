@@ -1,13 +1,28 @@
-// (c) Copyright 2011 WibiData, Inc.
+/**
+ * (c) Copyright 2013 WibiData, Inc.
+ *
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.kiji.mapreduce.lib.produce;
 
 import org.apache.hadoop.conf.Configuration;
+
 import org.kiji.hadoop.configurator.HadoopConf;
 import org.kiji.hadoop.configurator.HadoopConfigurator;
-
-import com.wibidata.core.license.Feature;
-import com.wibidata.core.license.LicensedBy;
 
 /**
  * A regex producer that is ready to use "out of the box."  All you
@@ -17,19 +32,18 @@ import com.wibidata.core.license.LicensedBy;
  * ConfiguredRegexProducer that reads from "info:email" and writes to
  * "derived:domain":
  *
- * bin/wibi produce \
- *   -Dwibi.regexproducer.input.column=info:email \
- *   -Dwibi.regexproducer.output.column=derived:domain \
- *   -Dwibi.regexproducer.regex='[^@]+@(.*)' \
- *   --input=wibi:foo \
- *   --output=wibi \
- *   --producer=com.wibidata.core.produce.ConfiguredRegexProducer
+ * bin/kiji produce \
+ *   -Dkiji.regexproducer.input.column=info:email \
+ *   -Dkiji.regexproducer.output.column=derived:domain \
+ *   -Dkiji.regexproducer.regex='[^@]+@(.*)' \
+ *   --input=kiji:foo \
+ *   --output=kiji \
+ *   --producer=org.kiji.mapreduce.lib.produce.ConfiguredRegexProducer
  */
-@LicensedBy(Feature.WIBI_LIB)
 public class ConfiguredRegexProducer extends RegexProducer {
-  public static final String CONF_INPUT_COLUMN = "wibi.regexproducer.input.column";
-  public static final String CONF_OUTPUT_COLUMN = "wibi.regexproducer.output.column";
-  public static final String CONF_REGEX = "wibi.regexproducer.regex";
+  public static final String CONF_INPUT_COLUMN = "kiji.regexproducer.input.column";
+  public static final String CONF_OUTPUT_COLUMN = "kiji.regexproducer.output.column";
+  public static final String CONF_REGEX = "kiji.regexproducer.regex";
 
   @HadoopConf(key=CONF_INPUT_COLUMN, usage="The input column name.")
   private String mInputColumn;

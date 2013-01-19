@@ -1,4 +1,21 @@
-// (c) Copyright 2011 WibiData, Inc.
+/**
+ * (c) Copyright 2013 WibiData, Inc.
+ *
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.kiji.mapreduce.lib.examples;
 
@@ -7,26 +24,26 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.kiji.schema.Kiji;
-import org.kiji.schema.KijiConfiguration;
-import org.kiji.schema.KijiTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.kiji.mapreduce.MapReduceJob;
 import org.kiji.mapreduce.KijiGatherJobBuilder;
-import org.kiji.mapreduce.output.TextMapReduceJobOutput;
+import org.kiji.mapreduce.MapReduceJob;
 import org.kiji.mapreduce.lib.reduce.IntSumReducer;
+import org.kiji.mapreduce.output.TextMapReduceJobOutput;
+import org.kiji.schema.Kiji;
+import org.kiji.schema.KijiConfiguration;
+import org.kiji.schema.KijiTable;
 
 /**
- * A program that runs the {@link com.wibidata.core.client.lib.examples.EmailDomainCountGatherer}
- * over a Wibi table.
+ * A program that runs the {@link org.kiji.mapreduce.lib.examples.EmailDomainCountGatherer}
+ * over a Kiji table.
  *
  * <p>To run this job from the command line:</p>
  *
  * <pre>
- * $ java -cp `$WIBI_HOME/bin/wibi classpath` \
- * &gt;   com.wibidata.core.client.lib.examples.EmailDomainCountGatherJob \
+ * $ java -cp `$KIJI_HOME/bin/kiji classpath` \
+ * &gt;   org.kiji.mapreduce.lib.examples.EmailDomainCountGatherJob \
  * &gt;   instance-name table-name output-path num-splits
  * </pre>
  */
@@ -44,22 +61,22 @@ public class EmailDomainCountGatherJob extends Configured implements Tool {
 
     // Read the arguments from the commmand-line.
     String instanceName = args[0];
-    String wibiTableName = args[1];
+    String kijiTableName = args[1];
     Path outputPath = new Path(args[2]);
     int numSplits = Integer.parseInt(args[3]);
-    LOG.info("Configuring a gather job over table " + wibiTableName + ".");
+    LOG.info("Configuring a gather job over table " + kijiTableName + ".");
     LOG.info("Writing output to " + outputPath + ".");
     LOG.info("Using " + numSplits + " reducers.");
 
     LOG.info("Loading HBase configuration...");
     setConf(HBaseConfiguration.addHbaseResources(getConf()));
 
-    LOG.info("Opening a wibi connection...");
-    KijiConfiguration wibiConf = new KijiConfiguration(getConf(), instanceName);
-    Kiji wibi = Kiji.open(wibiConf);
+    LOG.info("Opening a kiji connection...");
+    KijiConfiguration kijiConf = new KijiConfiguration(getConf(), instanceName);
+    Kiji kiji = Kiji.Factory.open(kijiConf);
 
-    LOG.info("Opening wibi table " + wibiTableName + "...");
-    KijiTable table = wibi.openTable(wibiTableName);
+    LOG.info("Opening kiji table " + kijiTableName + "...");
+    KijiTable table = kiji.openTable(kijiTableName);
 
     LOG.info("Configuring a gather job...");
     KijiGatherJobBuilder jobBuilder = new KijiGatherJobBuilder()
@@ -76,7 +93,7 @@ public class EmailDomainCountGatherJob extends Configured implements Tool {
     boolean isSuccessful = job.run();
 
     table.close();
-    wibi.close();
+    kiji.close();
 
     LOG.info(isSuccessful ? "Job succeeded." : "Job failed.");
     return isSuccessful ? 0 : 1;
@@ -88,14 +105,14 @@ public class EmailDomainCountGatherJob extends Configured implements Tool {
    * <pre>
    * USAGE:
    *
-   *     EmailDomainCountGatherJob &lt;wibi-instance&gt; &lt;wibi-table&gt; &lt;output-path&gt;
+   *     EmailDomainCountGatherJob &lt;kiji-instance&gt; &lt;kiji-table&gt; &lt;output-path&gt;
    *       &lt;num-splits&gt;
    *
    * ARGUMENTS:
    *
-   *     wibi-instance: Name of the wibi instance the table is in.
+   *     kiji-instance: Name of the kiji instance the table is in.
    *
-   *     wibi-table: Name of the wibi table gather over.
+   *     kiji-table: Name of the kiji table gather over.
    *
    *     output-path: The path to the output files to generate.
    *
