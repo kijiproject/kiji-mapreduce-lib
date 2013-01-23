@@ -72,7 +72,7 @@ public class EmailDomainProduceJob extends Configured implements Tool {
     KijiTable table = kiji.openTable(kijiTableName);
 
     LOG.info("Configuring a produce job...");
-    KijiProduceJobBuilder jobBuilder = new KijiProduceJobBuilder()
+    KijiProduceJobBuilder jobBuilder = KijiProduceJobBuilder.create()
         .withInputTable(table)
         .withProducer(EmailDomainProducer.class)
         .withOutput(new KijiTableMapReduceJobOutput(table));
@@ -84,7 +84,7 @@ public class EmailDomainProduceJob extends Configured implements Tool {
     boolean isSuccessful = job.run();
 
     table.close();
-    kiji.close();
+    kiji.release();
 
     LOG.info(isSuccessful ? "Job succeeded." : "Job failed.");
     return isSuccessful ? 0 : 1;

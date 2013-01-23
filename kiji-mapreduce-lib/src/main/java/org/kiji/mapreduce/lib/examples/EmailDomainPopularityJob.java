@@ -110,7 +110,7 @@ public class EmailDomainPopularityJob extends Configured implements Tool {
     }
 
     table.close();
-    kiji.close();
+    kiji.release();
 
     return 0;
   }
@@ -127,7 +127,7 @@ public class EmailDomainPopularityJob extends Configured implements Tool {
   private boolean countEmailDomainPopularity(KijiTable table, Path outputPath, int numSplits)
       throws Exception {
     LOG.info("Configuring a gather job...");
-    KijiGatherJobBuilder jobBuilder = new KijiGatherJobBuilder()
+    KijiGatherJobBuilder jobBuilder = KijiGatherJobBuilder.create()
         .withInputTable(table)
         .withGatherer(EmailDomainCountGatherer.class)
         .withCombiner(IntSumReducer.class)
@@ -155,7 +155,7 @@ public class EmailDomainPopularityJob extends Configured implements Tool {
       Path inputPath, Path outputPath, int numSplits, KijiConfiguration kijiConf)
       throws Exception {
     LOG.info("Configuring a transform job...");
-    KijiTransformJobBuilder jobBuilder = new KijiTransformJobBuilder()
+    KijiTransformJobBuilder jobBuilder = KijiTransformJobBuilder.create()
         .withKijiConfiguration(kijiConf)
         .withInput(new SequenceFileMapReduceJobInput(inputPath))
         .withMapper(InvertCountMapper.class)
