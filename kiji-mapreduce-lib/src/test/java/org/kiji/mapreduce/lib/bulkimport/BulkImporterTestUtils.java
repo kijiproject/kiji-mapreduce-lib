@@ -30,13 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kiji.schema.EntityId;
-import org.kiji.schema.KijiClientTest;
 import org.kiji.schema.KijiRowData;
 
 /**
  * Utility class containing constants for resources and validation methods for bulk importer tests.
  */
-public final class BulkImporterTestUtils extends KijiClientTest {
+public final class BulkImporterTestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(BulkImporterTestUtils.class);
 
   public static final String CSV_IMPORT_DATA =

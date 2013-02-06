@@ -50,8 +50,13 @@ import org.kiji.schema.layout.KijiTableLayout;
 import org.kiji.schema.util.ResourceUtils;
 
 /**
- * Importing from a text file requires specifying a KijiColumnName, and the source
- * for each element to be inserted into kiji, in addition to the raw import data.
+ * DescribedInputTextBulkImporter is an abstract class that provides methods to bulk importers for
+ * mapping from source fields in the import lines to destination Kiji columns.
+ *
+ * Importing from a text file requires specifying a KijiColumnName, and the source field
+ * for each element to be inserted into kiji, in addition to the raw import data.  This information
+ * is provided by {@link org.kiji.mapreduce.bulkimport.KijiTableImportDescriptor} which is set via
+ * the <code>kiji.import.text.input.descriptor.path</code> parameter in {@link #CONF_FILE}.
  *
  * <p>Use this Mapper over text files to import data into a Kiji
  * table.  Each line in the file will be treated data for one row.
@@ -59,13 +64,20 @@ import org.kiji.schema.util.ResourceUtils;
  * of writes to add to that entity.  Override the produce(String, Context)
  * method with this behavior.</p>
  *
- * <p>This class reads a list of qualifiers and writer Schemas from an input-descriptor file
- * in hdfs.  See {@link org.kiji.mapreduce.bulkimport.KijiTableImportDescriptor} for
- * input-descriptor format.</p>
+ * Extensions of this class should implement the following methods:
+ * <ul>
+ *   <li>{@link #produce} - actual producer code for the bulk importer should go here</li>
+ *   <li>{@link #setupImporter}</li> - (optional) any specific setup for this bulk importer.
+ * </ul>
  *
- * <p>The KijiColumnNames may be retrieved with the method getColumns().  The paired source
- * can be retrieved with subsequent calls to getSource.</p>
+ * Extensions of this class can use the following methods to implement their producers:
+ * <ul>
+ *   <li>{@link #getDestinationColumns} - to retrieve a collection of destination columns.</li>
+ *   <li>{@link #getSource} - to retrieve the source for one of the columns listed above.</li>
+ *   <li>{@link #getEntityIdSource()} - to retrieve the source for the entity id for the row.</li>
+ * </ul>
  */
+
 @ApiAudience.Public
 @Inheritance.Extensible
 public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<LongWritable, Text> {
@@ -114,12 +126,29 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * Performs validation that this table import descriptor can be applied to the output table.  This
+   * method is final to prevent it from being overridden without being called.  Subclasses should
+   * override the setupImporter() method instead of overriding this class.
+   * {@inheritDoc}
+   */
   @Override
-  public void setup(KijiTableContext context) throws IOException {
+  public final void setup(KijiTableContext context) throws IOException {
+    setupImporter(context);
+
+    Preconditions.checkNotNull(mTableImportDescriptor);
     Preconditions.checkNotNull(mOutputTableLayout);
     mTableImportDescriptor.validateDestination(mOutputTableLayout);
   }
+
+  /**
+   * Extensible version of setup for subclasses of DescribedInputTextBulkImporter.
+   * Does nothing by default.
+   *
+   * @param context A context you can use to generate EntityIds and commit writes.
+   * @throws IOException on I/O error.
+   */
+  public void setupImporter(KijiTableContext context) throws IOException {}
 
   /**
    * Converts a line of text to a set of writes to <code>context</code>, and
@@ -132,15 +161,18 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
   public abstract void produce(Text line, KijiTableContext context)
       throws IOException;
 
-  /** {@inheritDoc} */
+  /**
+   * Subclasses should implement the produce(Text line, KijiTableContext context) method instead.
+   * {@inheritDoc}
+   */
   @Override
-  public void produce(LongWritable fileOffset, Text line, KijiTableContext context)
+  public final void produce(LongWritable fileOffset, Text line, KijiTableContext context)
       throws IOException {
     produce(line, context);
   }
 
   /** @return a collection of the columns for this bulk importer. */
-  protected Collection<KijiColumnName> getColumns() {
+  protected final Collection<KijiColumnName> getDestinationColumns() {
     return mTableImportDescriptor.getColumnNameSourceMap().keySet();
   }
 
@@ -149,12 +181,12 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
    * @param kijiColumnName the requested Kiji column
    * @return the source for the requested column
    */
-  protected String getSource(KijiColumnName kijiColumnName) {
+  protected final String getSource(KijiColumnName kijiColumnName) {
     return mTableImportDescriptor.getColumnNameSourceMap().get(kijiColumnName);
   }
 
   /** @return the source for the EntityId. */
-  protected String getEntityIdSource() {
+  protected final String getEntityIdSource() {
     return mTableImportDescriptor.getEntityIdSource();
   }
 

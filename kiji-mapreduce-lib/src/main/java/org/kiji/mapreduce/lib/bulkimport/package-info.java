@@ -17,5 +17,31 @@
  * limitations under the License.
  */
 
-/** Bulk importers. */
-package org.kiji.mapreduce.bulkimport.lib;
+/**
+ * Bulk importers for Kiji MapReduce
+ *
+ * Bulk importers in Kiji MapReduce can be created using the
+ * {@link org.kiji.mapreduce.KijiBulkImportJobBuilder}.  These classes can generally be specified
+ * as part of the {@link org.kiji.mapreduce.KijiBulkImportJobBuilder.}
+ *
+ * <p>
+ *   Classes of note:
+ * </p>
+ * <ul>
+ *   <li>{@link org.kiji.mapreduce.lib.bulkimport.DescribedInputTextBulkImporter} - Base class for
+ *       bulk importing of any form of structured text class.  Other bulk importers will inherit
+ *       from this including:</li>
+ *   <li>{@link org.kiji.mapreduce.lib.bulkimport.CSVBulkImporter} - CSV (Comma Separated Value)
+ *       bulk importer that also processes TSV(Tab Separated Values).</li>
+ * </ul>
+ *
+ * <p>
+ *   Related Documentation:
+ * </p>
+ * <ul>
+ *   <li>{@link org.kiji.mapreduce.bulkimport.KijiTableImportDescriptor} - The bulk import mapping
+ *       definition that </li>
+ * </ul>
+ */
+
+package org.kiji.mapreduce.lib.bulkimport;

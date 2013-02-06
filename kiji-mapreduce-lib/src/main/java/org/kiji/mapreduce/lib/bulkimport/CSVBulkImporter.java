@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.kiji.annotations.ApiAudience;
-import org.kiji.annotations.Inheritance;
 import org.kiji.hadoop.configurator.HadoopConf;
 import org.kiji.mapreduce.KijiTableContext;
 import org.kiji.mapreduce.lib.util.CSVParser;
@@ -41,16 +40,21 @@ import org.kiji.schema.KijiColumnName;
 
 /**
  * Bulk importer that handles comma separated files.  TSVs are also supported by setting the
- * CONF_FIELD_DELIMITER configuration object.
+ * <code>kiji.import.text.field.separator</code> configuration item specified by
+ * {@link #CONF_FIELD_DELIMITER}.
+ *
+ * For import files that do not contain a header row, a default can be specified by setting the
+ * <code>kiji.import.text.column.header_row</code> configuration item specified by
+ * {@link #CONF_INPUT_HEADER_ROW}.
+ *
  * {@inheritDoc}
  */
 @ApiAudience.Public
-@Inheritance.Sealed
 public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
   private static final Logger LOG =
       LoggerFactory.getLogger(CSVBulkImporter.class);
 
-  /** Configuration variable that specifies the header row to use instead of the first line. */
+  /** Configuration variable for a header row containing delimited string of names of fields. */
   public static final String CONF_INPUT_HEADER_ROW = "kiji.import.text.column.header_row";
 
   /** Configuration variable that specifies the cell value separator in the text input files. */
@@ -63,13 +67,12 @@ public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
   @HadoopConf(key=CONF_FIELD_DELIMITER)
   private String mColumnDelimiter = CSV_DELIMITER;
 
+  /** Internal map of field names to field positions in the parsed line. */
   private Map<String, Integer> mFieldMap = null;
 
   /** {@inheritDoc} */
   @Override
-  public void setup(KijiTableContext context) throws IOException {
-    super.setup(context);
-
+  public void setupImporter(KijiTableContext context) throws IOException {
     // If the header row is specified in the configuration, use that.
     if (getConf().get(CONF_INPUT_HEADER_ROW) != null) {
       List<String> fields = null;
@@ -89,7 +92,7 @@ public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
    * Initializes the field to column position mapping for this file.
    * @param headerFields the header fields for this delimited file.
    */
-  private void initializeHeader(List<String> headerFields) {
+  private void initializeHeader(List<String> headerFields) throws IOException {
     LOG.info("Initializing field map with fields: " + StringUtils.join(headerFields, ","));
     Map<String, Integer> fieldMap = Maps.newHashMap();
     for (int index=0; index < headerFields.size(); index++) {
@@ -124,7 +127,7 @@ public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
    * @return The EntityId for the data that gets imported by this line.
    */
   protected EntityId getEntityId(List<String> fields, KijiTableContext context) {
-    //TODO Extend this to support composite row key ids
+    //TODO(KIJIMRLIB-3) Extend this to support composite row key ids
     String rowkey = fields.get(mFieldMap.get(getEntityIdSource()));
     return context.getEntityId(rowkey);
   }
@@ -153,10 +156,10 @@ public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
     } catch (ParseException pe) {
       LOG.error("Unable to parse line: {} with exception {}",
           value.toString(), pe.getMessage());
-      //TODO Emit this to a rejected output so that import can be reattempted
+      //TODO(KIJIMRLIB-4) Emit this to a rejected output so that import can be reattempted
       return;
     }
-    for (KijiColumnName kijiColumnName : getColumns()) {
+    for (KijiColumnName kijiColumnName : getDestinationColumns()) {
       final EntityId eid = getEntityId(fields, context);
       String source = getSource(kijiColumnName);
 
