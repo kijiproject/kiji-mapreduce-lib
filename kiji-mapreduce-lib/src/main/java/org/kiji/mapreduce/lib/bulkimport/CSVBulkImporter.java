@@ -92,7 +92,7 @@ public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
    * Initializes the field to column position mapping for this file.
    * @param headerFields the header fields for this delimited file.
    */
-  private void initializeHeader(List<String> headerFields) throws IOException {
+  private void initializeHeader(List<String> headerFields) {
     LOG.info("Initializing field map with fields: " + StringUtils.join(headerFields, ","));
     Map<String, Integer> fieldMap = Maps.newHashMap();
     for (int index=0; index < headerFields.size(); index++) {
