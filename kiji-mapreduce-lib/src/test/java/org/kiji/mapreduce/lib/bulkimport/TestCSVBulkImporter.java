@@ -21,8 +21,10 @@ package org.kiji.mapreduce.lib.bulkimport;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -33,6 +35,7 @@ import org.junit.Test;
 
 import org.kiji.mapreduce.JobHistoryCounters;
 import org.kiji.mapreduce.KijiBulkImportJobBuilder;
+import org.kiji.mapreduce.KijiConfKeys;
 import org.kiji.mapreduce.KijiMRTestLayouts;
 import org.kiji.mapreduce.MapReduceJob;
 import org.kiji.mapreduce.TestingResources;
@@ -167,5 +170,28 @@ public class TestCSVBulkImporter extends KijiClientTest {
     final KijiRowScanner scanner = mReader.getScanner(KijiDataRequest.create("info"));
     BulkImporterTestUtils.validateImportedRows(scanner);
     scanner.close();
+  }
+
+  @Test
+  public void testFailOnInvalidDelimiter() throws Exception {
+    // Prepare input file:
+    File inputFile = File.createTempFile("TestCSVImportInput", ".txt", getLocalTempDir());
+    TestingResources.writeTextFile(inputFile,
+        TestingResources.get(BulkImporterTestUtils.CSV_IMPORT_DATA));
+
+    Configuration conf = getConf();
+    conf.set(DescribedInputTextBulkImporter.CONF_FILE,
+        BulkImporterTestUtils.localResource(BulkImporterTestUtils.FOO_IMPORT_DESCRIPTOR));
+    conf.set(CSVBulkImporter.CONF_FIELD_DELIMITER, "!");
+    conf.set(KijiConfKeys.KIJI_OUTPUT_TABLE_URI, mTable.getURI().toString());
+    CSVBulkImporter csvbi = new CSVBulkImporter();
+    csvbi.setConf(conf);
+    try {
+      csvbi.setupImporter(null);
+      fail("Should've gotten an IOException by here.");
+    } catch (IOException ie) {
+      assertEquals("Invalid delimiter '!' specified.  Valid options are: ',','\t'",
+          ie.getMessage());
+    }
   }
 }

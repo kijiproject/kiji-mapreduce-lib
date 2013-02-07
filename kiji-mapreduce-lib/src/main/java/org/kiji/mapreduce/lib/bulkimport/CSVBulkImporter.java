@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
@@ -73,6 +74,14 @@ public final class CSVBulkImporter extends DescribedInputTextBulkImporter {
   /** {@inheritDoc} */
   @Override
   public void setupImporter(KijiTableContext context) throws IOException {
+    // Validate that the passed in delimiter is one of the supported options.
+    List<String> validDelimiters = Lists.newArrayList(CSV_DELIMITER, TSV_DELIMITER);
+    if (!validDelimiters.contains(mColumnDelimiter)) {
+      throw new IOException(
+          String.format("Invalid delimiter '%s' specified.  Valid options are: '%s'",
+          mColumnDelimiter, StringUtils.join(validDelimiters, "','")));
+    }
+
     // If the header row is specified in the configuration, use that.
     if (getConf().get(CONF_INPUT_HEADER_ROW) != null) {
       List<String> fields = null;

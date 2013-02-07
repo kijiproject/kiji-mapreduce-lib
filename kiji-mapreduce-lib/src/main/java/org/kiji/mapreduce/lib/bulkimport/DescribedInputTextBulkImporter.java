@@ -69,7 +69,8 @@ import org.kiji.schema.util.ResourceUtils;
  * Extensions of this class should implement the following methods:
  * <ul>
  *   <li>{@link #produce} - actual producer code for the bulk importer should go here</li>
- *   <li>{@link #setupImporter}</li> - (optional) any specific setup for this bulk importer.
+ *   <li>{@link #setupImporter} - (optional) any specific setup for this bulk importer.</li>
+ *   <li>{@link #cleanupImporter} - (optional) any specific cleanupfor this bulk importer.</li>
  * </ul>
  *
  * Extensions of this class can use the following methods to implement their producers:
@@ -144,7 +145,8 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
   }
 
   /**
-   * Extensible version of setup for subclasses of DescribedInputTextBulkImporter.
+   * Extensible version of {@link org.kiji.mapreduce.KijiBulkImporter#setup} for subclasses of
+   * DescribedInputTextBulkImporter.
    * Does nothing by default.
    *
    * @param context A context you can use to generate EntityIds and commit writes.
@@ -194,6 +196,26 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
   protected final String getEntityIdSource() {
     return mTableImportDescriptor.getEntityIdSource();
   }
+
+  /**
+   * Subclasses should implement the cleanup(KijiTableContext context) method instead.
+   * {@inheritDoc}
+   */
+  @Override
+  public final void cleanup(KijiTableContext context) throws IOException {
+    cleanupImporter(context);
+  }
+
+  /**
+   * Extensible version of {@link org.kiji.mapreduce.KijiBulkImporter#cleanup} for subclasses of
+   * DescribedInputTextBulkImporter.
+   * Does nothing by default.
+   *
+   * @param context A context you can use to generate EntityIds and commit writes.
+   * @throws IOException on I/O error.
+   */
+  public void cleanupImporter(KijiTableContext context) throws IOException {}
+
 
   /**
    * Sets the input descriptor.
