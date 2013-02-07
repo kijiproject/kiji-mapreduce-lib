@@ -18,11 +18,11 @@
  */
 
 /**
- * Bulk importers for Kiji MapReduce
+ * Bulk importers for Kiji MapReduce.
  *
  * Bulk importers in Kiji MapReduce can be created using the
  * {@link org.kiji.mapreduce.KijiBulkImportJobBuilder}.  These classes can generally be specified
- * as part of the {@link org.kiji.mapreduce.KijiBulkImportJobBuilder.}
+ * as part of the {@link org.kiji.mapreduce.KijiBulkImportJobBuilder}.
  *
  * <p>
  *   Classes of note:
@@ -40,7 +40,7 @@
  * </p>
  * <ul>
  *   <li>{@link org.kiji.mapreduce.bulkimport.KijiTableImportDescriptor} - The bulk import mapping
- *       definition that </li>
+ *       import configuration.</li>
  * </ul>
  */
 

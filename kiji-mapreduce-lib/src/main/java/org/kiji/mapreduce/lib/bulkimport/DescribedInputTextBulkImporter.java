@@ -21,6 +21,8 @@ package org.kiji.mapreduce.lib.bulkimport;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
@@ -129,16 +131,16 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
   /**
    * Performs validation that this table import descriptor can be applied to the output table.  This
    * method is final to prevent it from being overridden without being called.  Subclasses should
-   * override the setupImporter() method instead of overriding this class.
+   * override the setupImporter() method instead of overriding this method..
    * {@inheritDoc}
    */
   @Override
   public final void setup(KijiTableContext context) throws IOException {
-    setupImporter(context);
-
     Preconditions.checkNotNull(mTableImportDescriptor);
     Preconditions.checkNotNull(mOutputTableLayout);
     mTableImportDescriptor.validateDestination(mOutputTableLayout);
+
+    setupImporter(context);
   }
 
   /**
@@ -171,13 +173,16 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
     produce(line, context);
   }
 
-  /** @return a collection of the columns for this bulk importer. */
+  /** @return an unmodifiable collection of the columns for this bulk importer. */
   protected final Collection<KijiColumnName> getDestinationColumns() {
-    return mTableImportDescriptor.getColumnNameSourceMap().keySet();
+    Set<KijiColumnName> columns = mTableImportDescriptor.getColumnNameSourceMap().keySet();
+    return Collections.unmodifiableSet(columns);
   }
 
   /**
-   * Returns the source for the specified column.
+   * Returns the source for the specified column, or null if the specified column is not a
+   * destination column for this importer.
+   *
    * @param kijiColumnName the requested Kiji column
    * @return the source for the requested column
    */
