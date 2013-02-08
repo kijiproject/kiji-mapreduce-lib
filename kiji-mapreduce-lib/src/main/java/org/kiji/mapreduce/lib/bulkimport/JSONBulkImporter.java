@@ -35,9 +35,9 @@ import org.kiji.schema.EntityId;
 import org.kiji.schema.KijiColumnName;
 
 /**
- * Bulk importer that handles JSON files.  Each line represents a separate JSON object to be
- * imported into a row.  Target columns whose sources are not present in the JSON object are
- * skipped.
+ * Bulk importer that handles JSON files.  The expected JSON file should be an enter separated
+ * set of records.  Each line represents a separate JSON object to be imported into a row.  Target
+ * columns whose sources are not present in the JSON object are skipped.
  *
  * Complex paths in JSON are specified by strings delimited with periods(.).
  *
@@ -103,8 +103,7 @@ public final class JSONBulkImporter extends DescribedInputTextBulkImporter {
       if (fieldValue != null) {
         context.put(eid, kijiColumnName.getFamily(), kijiColumnName.getQualifier(), fieldValue);
       } else {
-        LOG.warn("Detected missing field: " + source);
-        //TODO(KIJIMRLIB-4) Add a strict mode where we reject lines if anything is missing
+        incomplete(value, context, "Detected missing field: " + source);
       }
     }
   }

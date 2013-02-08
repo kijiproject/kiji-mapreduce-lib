@@ -89,13 +89,17 @@ public class TestJSONBulkImporter extends KijiClientTest {
         .withConf(conf)
         .withBulkImporter(JSONBulkImporter.class)
         .withInput(new TextMapReduceJobInput(new Path(inputFile.toString())))
-        .withOutput(new DirectKijiTableMapReduceJobOutput(mTable))
+        .withOutput(new DirectKijiTableMapReduceJobOutput(mTable.getURI()))
         .build();
     assertTrue(job.run());
 
     final Counters counters = job.getHadoopJob().getCounters();
     assertEquals(3,
         counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_PROCESSED).getValue());
+    assertEquals(1,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_INCOMPLETE).getValue());
+    assertEquals(0,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_REJECTED).getValue());
 
     // Validate output:
     final KijiRowScanner scanner = mReader.getScanner(KijiDataRequest.create("info"));
@@ -119,13 +123,17 @@ public class TestJSONBulkImporter extends KijiClientTest {
         .withConf(conf)
         .withBulkImporter(JSONBulkImporter.class)
         .withInput(new TextMapReduceJobInput(new Path(inputFile.toString())))
-        .withOutput(new DirectKijiTableMapReduceJobOutput(mTable))
+        .withOutput(new DirectKijiTableMapReduceJobOutput(mTable.getURI()))
         .build();
     assertTrue(job.run());
 
     final Counters counters = job.getHadoopJob().getCounters();
     assertEquals(3,
         counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_PROCESSED).getValue());
+    assertEquals(1,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_INCOMPLETE).getValue());
+    assertEquals(0,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_REJECTED).getValue());
 
     // Validate output:
     final KijiRowScanner scanner = mReader.getScanner(KijiDataRequest.create("info"));

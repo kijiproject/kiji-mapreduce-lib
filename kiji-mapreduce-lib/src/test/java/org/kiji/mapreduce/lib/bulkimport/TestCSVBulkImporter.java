@@ -134,6 +134,10 @@ public class TestCSVBulkImporter extends KijiClientTest {
     final Counters counters = job.getHadoopJob().getCounters();
     assertEquals(3,
         counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_PROCESSED).getValue());
+    assertEquals(1,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_INCOMPLETE).getValue());
+    assertEquals(0,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_REJECTED).getValue());
 
     // Validate output:
     final KijiRowScanner scanner = mReader.getScanner(KijiDataRequest.create("info"));
@@ -165,6 +169,10 @@ public class TestCSVBulkImporter extends KijiClientTest {
     final Counters counters = job.getHadoopJob().getCounters();
     assertEquals(4,
         counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_PROCESSED).getValue());
+    assertEquals(1,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_INCOMPLETE).getValue());
+    assertEquals(0,
+        counters.findCounter(JobHistoryCounters.BULKIMPORTER_RECORDS_REJECTED).getValue());
 
     // Validate output:
     final KijiRowScanner scanner = mReader.getScanner(KijiDataRequest.create("info"));
