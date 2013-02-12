@@ -38,7 +38,7 @@ import org.kiji.schema.KijiColumnName;
  * Bulk importer that handles the NCSA Common Log Format.
  *
  * Details about this format here:
- * {@linkurl http://www.w3.org/Daemon/User/Config/Logging.html#common-logfile-format}
+ * {@linktourl http://www.w3.org/Daemon/User/Config/Logging.html#common-logfile-format}
  *
  * {@inheritDoc}
  */
