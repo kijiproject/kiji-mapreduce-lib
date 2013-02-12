@@ -16,33 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-{
-  name : "foo",
-  families : [ {
-    name : "log",
-    columns : [ {
-      name : "remotehost",
-      source : "REMOTEHOST"
-    }, {
-      name : "ident",
-      source : "IDENT"
-    }, {
-      name : "authuser",
-      source : "AUTHUSER"
-    }, {
-      name : "date",
-      source : "DATE"
-    }, {
-      name : "request",
-      source : "REQUEST"
-    }, {
-      name : "status",
-      source : "STATUS"
-    }, {
-      name : "bytes",
-      source : "BYTES"
-    } ]
-  } ],
-  entityIdSource : "REMOTEHOST",
-  version : "imports-1.0"
+
+package org.kiji.mapreduce.lib.bulkimport;
+
+import java.io.IOException;
+
+import org.kiji.annotations.ApiAudience;
+
+/**
+ * Thrown when an invalid Kiji table import descriptor is encountered.
+ * A table import descriptor is invalid when either the columns specified in either the source
+ * or the destination don't exist.
+ */
+@ApiAudience.Public
+public class InvalidTableImportDescriptorException extends IOException {
+
+  /**
+   * Creates a new <code>InvalidTableImportDescriptorException</code> with the specified reason.
+   *
+   * @param reason A message describing the reason the mapping is invalid.
+   */
+  public InvalidTableImportDescriptorException(String reason) {
+    super(reason);
+  }
 }
