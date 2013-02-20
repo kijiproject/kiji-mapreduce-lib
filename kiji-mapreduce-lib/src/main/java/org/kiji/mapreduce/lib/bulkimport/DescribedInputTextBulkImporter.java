@@ -188,7 +188,7 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
   }
 
   /**
-   * Extensible version of {@link org.kiji.mapreduce.KijiBulkImporter#setup} for subclasses of
+   * Extensible version of {@link KijiBulkImporter#setup} for subclasses of
    * DescribedInputTextBulkImporter.
    * Does nothing by default.
    *
@@ -324,7 +324,7 @@ public abstract class DescribedInputTextBulkImporter extends KijiBulkImporter<Lo
   }
 
   /**
-   * Extensible version of {@link org.kiji.mapreduce.KijiBulkImporter#cleanup} for subclasses of
+   * Extensible version of {@link KijiBulkImporter#cleanup} for subclasses of
    * DescribedInputTextBulkImporter.
    * Does nothing by default.
    *
