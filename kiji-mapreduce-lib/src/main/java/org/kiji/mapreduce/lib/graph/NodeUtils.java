@@ -172,6 +172,8 @@ public final class NodeUtils {
   /**
    * Merges any edges with the same label.  The input edges are assumed to point to the
    * same target.
+   * The maps of annotations are unioned. Upon key conflicts, the values are concatenated with
+   * the delimiter '|'.
    *
    * @param edges The list of edges to merge.
    * @param nodeMerger The nodeMerger to use for the target nodes.
@@ -185,14 +187,25 @@ public final class NodeUtils {
       for (List<Edge> edgeLabelGroup : edgesByLabel.values()) {
         Edge mergedEdge = new Edge();
         List<Node> nodes = new ArrayList<Node>();
+        Map<String, String> annotations = new HashMap<String, String>();
         for (Edge edge : edgeLabelGroup) {
           mergedEdge.setLabel(edge.getLabel());
           mergedEdge.setWeight(mergedEdge.getWeight() + edge.getWeight());
           nodes.add(edge.getTarget());
+          if (null != edge.getAnnotations()) {
+            for (Map.Entry<String, String> entry : edge.getAnnotations().entrySet()) {
+              String valuePrefix = entry.getValue();
+              if (annotations.containsKey(entry.getKey())) {
+                valuePrefix += "|" + annotations.get(entry.getKey());
+              }
+              annotations.put(entry.getKey(), valuePrefix);
+            }
+          }
         }
         List<Node> mergedTarget = mergeNodes(nodes, nodeMerger);
         assert 1 == mergedTarget.size();
         mergedEdge.setTarget(mergedTarget.get(0));
+        mergedEdge.setAnnotations(annotations);
         mergedEdges.add(mergedEdge);
       }
     }
