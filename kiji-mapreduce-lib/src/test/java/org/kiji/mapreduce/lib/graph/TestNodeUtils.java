@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
 import org.junit.Test;
 
 import org.kiji.mapreduce.lib.avro.Edge;
@@ -97,5 +99,36 @@ public class TestNodeUtils {
     assertEquals(2, index.get("foo").size());
     assertEquals(getNode(), index.get("foo").get(0));
     assertEquals(node2, index.get("foo").get(1));
+  }
+
+  @Test
+  public void testEdgeAnnotationMerge() {
+    List<Edge> le = NodeUtils.mergeEdges(getEdges());
+    Map<String, String> annotations = le.get(0).getAnnotations();
+    assertEquals(annotations.get("key"), "anothervalue|value");
+    assertEquals(annotations.get("anotherkey"), "value");
+  }
+
+  public static List<Edge> getEdges() {
+    final Node sink = new NodeBuilder().setLabel("sink").build();
+    final Edge e0 = new EdgeBuilder()
+        .setLabel("apple")
+        .setWeight(0.0)
+        .setTarget(sink)
+        .addAnnotation("key", "value")
+        .build();
+    final Edge e1 = new EdgeBuilder()
+        .setLabel("apple")
+        .setWeight(1.0)
+        .setTarget(sink)
+        .addAnnotation("anotherkey", "value")
+        .build();
+    final Edge e2 = new EdgeBuilder()
+        .setLabel("apple")
+        .setWeight(2.0)
+        .setTarget(sink)
+        .addAnnotation("key", "anothervalue")
+        .build();
+    return Lists.newArrayList(e0, e1, e2);
   }
 }
